@@ -8,6 +8,8 @@ export interface TrailPoint {
 export class Ball {
   x = FIELD.width / 2;
   y = FIELD.height / 2;
+  prevX = FIELD.width / 2; // last fixed-step position, for render interpolation
+  prevY = FIELD.height / 2;
   vx = 0;
   vy = 0;
   speed: number = BALL.startSpeed;
@@ -21,6 +23,8 @@ export class Ball {
   serve(direction: number): void {
     this.x = FIELD.width / 2;
     this.y = FIELD.height / 2;
+    this.prevX = this.x;
+    this.prevY = this.y;
     this.speed = BALL.startSpeed;
     const angle = (Math.random() * 2 - 1) * BALL.serveSpread;
     this.vx = Math.cos(angle) * this.speed * direction;
@@ -29,6 +33,8 @@ export class Ball {
   }
 
   update(dt: number): void {
+    this.prevX = this.x;
+    this.prevY = this.y;
     this.x += this.vx * dt;
     this.y += this.vy * dt;
     this.trail.push({ x: this.x, y: this.y });

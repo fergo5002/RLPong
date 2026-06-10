@@ -4,6 +4,7 @@ import type { Difficulty } from '../entities/Ai';
 export interface MenuCallbacks {
   onStart: (mode: Mode, difficulty: Difficulty) => void;
   onResume: () => void;
+  onMenu: () => void;
 }
 
 /** DOM overlay for the main menu, pause, and game-over screens. */
@@ -25,6 +26,7 @@ export class Menu {
   private button(label: string, onClick: () => void, variant = 'primary'): HTMLButtonElement {
     const b = document.createElement('button');
     b.textContent = label;
+    b.type = 'button';
     b.className = `btn btn-${variant}`;
     b.addEventListener('click', onClick);
     return b;
@@ -52,19 +54,24 @@ export class Menu {
 
     const diffLabel = document.createElement('p');
     diffLabel.className = 'label';
+    diffLabel.id = 'difficulty-label';
     diffLabel.textContent = 'AI DIFFICULTY';
 
     const diffRow = document.createElement('div');
     diffRow.className = 'row';
+    diffRow.setAttribute('role', 'group');
+    diffRow.setAttribute('aria-labelledby', 'difficulty-label');
     (['easy', 'normal', 'hard'] as Difficulty[]).forEach((d) => {
+      const selected = this.difficulty === d;
       const b = this.button(
         d.toUpperCase(),
         () => {
           this.difficulty = d;
           this.renderMain();
         },
-        this.difficulty === d ? 'active' : 'ghost',
+        selected ? 'active' : 'ghost',
       );
+      b.setAttribute('aria-pressed', String(selected));
       diffRow.appendChild(b);
     });
 
@@ -84,6 +91,7 @@ export class Menu {
 
     this.root.append(title, sub, diffLabel, diffRow, startAi, start2p, controls);
     this.show();
+    startAi.focus();
   }
 
   renderPause(): void {
@@ -92,9 +100,10 @@ export class Menu {
     h.className = 'title';
     h.textContent = 'PAUSED';
     const resume = this.button('RESUME', () => this.cb.onResume());
-    const quit = this.button('MAIN MENU', () => this.renderMain(), 'secondary');
+    const quit = this.button('MAIN MENU', () => this.cb.onMenu(), 'secondary');
     this.root.append(h, resume, quit);
     this.show();
+    resume.focus();
   }
 
   renderGameOver(): void {
@@ -109,8 +118,9 @@ export class Menu {
     const again = this.button('REMATCH', () =>
       this.cb.onStart(this.game.mode, this.game.difficulty),
     );
-    const menu = this.button('MAIN MENU', () => this.renderMain(), 'secondary');
+    const menu = this.button('MAIN MENU', () => this.cb.onMenu(), 'secondary');
     this.root.append(h, score, again, menu);
     this.show();
+    again.focus();
   }
 }

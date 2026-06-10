@@ -3,6 +3,7 @@ import { Ai } from '../src/entities/Ai';
 import { Ball } from '../src/entities/Ball';
 import { Paddle } from '../src/entities/Paddle';
 import { EMPTY_INPUT } from '../src/core/input';
+import { PADDLE } from '../src/config';
 
 const noError = () => 0.5; // (0.5*2-1)=0 → aims exactly at the ball
 
@@ -47,10 +48,48 @@ describe('Ai', () => {
     expect(Math.abs(p.y - ball.y)).toBeLessThan(startGap);
   });
 
-  it('never asks for boost', () => {
+  it('does not boost with the ball at rest in midfield', () => {
     const p = new Paddle('right');
     const ai = new Ai('easy', p, noError);
     expect(ai.update(0.016, new Ball(), p).boost).toBe(false);
     expect(EMPTY_INPUT.boost).toBe(false);
+  });
+
+  function incomingBall(p: Paddle): Ball {
+    const ball = new Ball();
+    ball.x = p.x - 40; // close to the paddle face
+    ball.y = p.y; // aligned
+    ball.vx = 300; // moving toward the right paddle
+    return ball;
+  }
+
+  it('hard AI boosts for a close, aligned, incoming ball when it has boost', () => {
+    const p = new Paddle('right');
+    p.boost = PADDLE.boostMax;
+    const ai = new Ai('hard', p, noError);
+    expect(ai.update(0.016, incomingBall(p), p).boost).toBe(true);
+  });
+
+  it('does not boost when the ball is moving away', () => {
+    const p = new Paddle('right');
+    p.boost = PADDLE.boostMax;
+    const ai = new Ai('hard', p, noError);
+    const ball = incomingBall(p);
+    ball.vx = -300; // moving away
+    expect(ai.update(0.016, ball, p).boost).toBe(false);
+  });
+
+  it('does not boost without enough boost in the meter', () => {
+    const p = new Paddle('right');
+    p.boost = PADDLE.boostDashCost - 1;
+    const ai = new Ai('hard', p, noError);
+    expect(ai.update(0.016, incomingBall(p), p).boost).toBe(false);
+  });
+
+  it('easy AI never boosts', () => {
+    const p = new Paddle('right');
+    p.boost = PADDLE.boostMax;
+    const ai = new Ai('easy', p, noError);
+    expect(ai.update(0.016, incomingBall(p), p).boost).toBe(false);
   });
 });

@@ -44,4 +44,23 @@ describe('Ball', () => {
     b.speed = BALL.supersonicSpeed;
     expect(b.isSupersonic).toBe(true);
   });
+
+  it('captures the previous position for interpolation', () => {
+    const b = new Ball();
+    b.x = 200;
+    b.y = 150;
+    b.vx = 40;
+    b.vy = 10;
+    b.update(0.5);
+    expect(b.prevX).toBe(200);
+    expect(b.prevY).toBe(150);
+    expect(b.x).toBeCloseTo(220);
+  });
+
+  it('serve aligns prev position with current (no spurious streak)', () => {
+    const b = new Ball();
+    b.serve(1);
+    expect(b.prevX).toBe(b.x);
+    expect(b.prevY).toBe(b.y);
+  });
 });

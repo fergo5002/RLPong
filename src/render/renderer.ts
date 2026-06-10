@@ -1,5 +1,6 @@
 import { COLORS } from './theme';
 import { FIELD, PADDLE, BALL } from '../config';
+import { lerp } from '../core/math';
 import type { Game } from '../core/Game';
 import type { Paddle } from '../entities/Paddle';
 import type { Ball } from '../entities/Ball';
@@ -63,34 +64,46 @@ function drawPaddle(
   p: Paddle,
   color: string,
   glow: string,
+  alpha: number,
 ): void {
+  const x = lerp(p.prevX, p.x, alpha);
+  const y = lerp(p.prevY, p.y, alpha);
   ctx.save();
   ctx.fillStyle = color;
   ctx.shadowColor = glow;
   ctx.shadowBlur = p.isDashing ? 40 : 22;
-  roundRect(ctx, p.x - PADDLE.width / 2, p.y - PADDLE.height / 2, PADDLE.width, PADDLE.height, 6);
+  roundRect(ctx, x - PADDLE.width / 2, y - PADDLE.height / 2, PADDLE.width, PADDLE.height, 6);
   ctx.fill();
   ctx.restore();
 }
 
-function drawBall(ctx: CanvasRenderingContext2D, ball: Ball): void {
+function drawBall(
+  ctx: CanvasRenderingContext2D,
+  ball: Ball,
+  alpha: number,
+  reducedMotion: boolean,
+): void {
   const color = ball.isSupersonic ? COLORS.ballSupersonic : COLORS.ball;
+  const bx = lerp(ball.prevX, ball.x, alpha);
+  const by = lerp(ball.prevY, ball.y, alpha);
   ctx.save();
-  for (let i = 0; i < ball.trail.length; i++) {
-    const t = ball.trail[i];
-    const a = (i + 1) / ball.trail.length;
-    ctx.globalAlpha = a * 0.45;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(t.x, t.y, BALL.radius * a, 0, Math.PI * 2);
-    ctx.fill();
+  if (!reducedMotion) {
+    for (let i = 0; i < ball.trail.length; i++) {
+      const t = ball.trail[i];
+      const a = (i + 1) / ball.trail.length;
+      ctx.globalAlpha = a * 0.45;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, BALL.radius * a, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   ctx.globalAlpha = 1;
   ctx.fillStyle = color;
   ctx.shadowColor = color;
   ctx.shadowBlur = ball.isSupersonic ? 40 : 20;
   ctx.beginPath();
-  ctx.arc(ball.x, ball.y, BALL.radius, 0, Math.PI * 2);
+  ctx.arc(bx, by, BALL.radius, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -109,11 +122,17 @@ function drawParticles(ctx: CanvasRenderingContext2D, particles: Particles): voi
   ctx.restore();
 }
 
-export function render(ctx: CanvasRenderingContext2D, game: Game, particles: Particles): void {
+export function render(
+  ctx: CanvasRenderingContext2D,
+  game: Game,
+  particles: Particles,
+  alpha = 1,
+  reducedMotion = false,
+): void {
   drawArena(ctx);
   drawGoals(ctx);
   drawParticles(ctx, particles);
-  drawPaddle(ctx, game.left, COLORS.blue, COLORS.blueGlow);
-  drawPaddle(ctx, game.right, COLORS.orange, COLORS.orangeGlow);
-  drawBall(ctx, game.ball);
+  drawPaddle(ctx, game.left, COLORS.blue, COLORS.blueGlow, alpha);
+  drawPaddle(ctx, game.right, COLORS.orange, COLORS.orangeGlow, alpha);
+  drawBall(ctx, game.ball, alpha, reducedMotion);
 }

@@ -54,4 +54,17 @@ describe('Paddle', () => {
     expect(p.isDashing).toBe(false);
     expect(p.x).toBe(p.homeX);
   });
+
+  it('recenter resets position, boost, and dash', () => {
+    const p = new Paddle('left');
+    p.y = 10;
+    p.boost = 0;
+    p.dashTimer = 0.1;
+    p.recenter();
+    expect(p.y).toBe(FIELD.height / 2);
+    expect(p.prevY).toBe(FIELD.height / 2);
+    expect(p.x).toBe(p.homeX);
+    expect(p.boost).toBe(PADDLE.boostMax);
+    expect(p.isDashing).toBe(false);
+  });
 });

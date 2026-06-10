@@ -3,17 +3,26 @@ export class Audio {
   private ctx: AudioContext | null = null;
   enabled = true;
 
-  /** Call from a user gesture (e.g. menu click) to satisfy autoplay policy. */
+  /** Call from a user gesture (e.g. menu click / Enter) to satisfy autoplay policy. */
   init(): void {
-    if (this.ctx || !this.enabled) return;
-    const Ctor =
-      window.AudioContext ??
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (Ctor) this.ctx = new Ctor();
+    if (!this.enabled) return;
+    if (!this.ctx) {
+      const Ctor =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (Ctor) this.ctx = new Ctor();
+    }
+    void this.ctx?.resume();
+  }
+
+  /** Resume if the context was suspended (e.g. after the tab was backgrounded). */
+  private ensureRunning(): void {
+    if (this.ctx && this.ctx.state !== 'running') void this.ctx.resume();
   }
 
   private blip(freq: number, duration: number, type: OscillatorType, gain = 0.08): void {
     if (!this.ctx || !this.enabled) return;
+    this.ensureRunning();
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const env = this.ctx.createGain();

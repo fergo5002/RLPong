@@ -60,4 +60,15 @@ describe('Game', () => {
     expect(g.state).toBe('gameover');
     expect(g.winner).toBe('left');
   });
+
+  it('returnToMenu resets the state machine', () => {
+    const g = new Game();
+    toPlaying(g);
+    g.togglePause();
+    g.scoreLeft = 4;
+    g.returnToMenu();
+    expect(g.state).toBe('menu');
+    expect(g.paused).toBe(false);
+    expect(g.winner).toBeNull();
+  });
 });

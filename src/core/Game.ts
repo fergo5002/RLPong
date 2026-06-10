@@ -2,7 +2,7 @@ import { Ball } from '../entities/Ball';
 import { Paddle, type Side } from '../entities/Paddle';
 import { Ai, type Difficulty } from '../entities/Ai';
 import { bounceWalls, collidePaddle, detectGoal } from '../systems/physics';
-import { FIELD, MATCH, PADDLE } from '../config';
+import { FIELD, MATCH } from '../config';
 import type { InputState } from './input';
 
 export type GameState = 'menu' | 'countdown' | 'playing' | 'gameover';
@@ -57,11 +57,17 @@ export class Game {
     if (this.state === 'playing') this.paused = !this.paused;
   }
 
+  /** Abandon the current match and return to the main menu (resets the state machine). */
+  returnToMenu(): void {
+    this.state = 'menu';
+    this.paused = false;
+    this.winner = null;
+    this.resetPositions();
+  }
+
   private resetPositions(): void {
-    this.left.y = FIELD.height / 2;
-    this.right.y = FIELD.height / 2;
-    this.left.boost = PADDLE.boostMax;
-    this.right.boost = PADDLE.boostMax;
+    this.left.recenter();
+    this.right.recenter();
   }
 
   private beginCountdown(): void {

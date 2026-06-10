@@ -6,6 +6,8 @@ export type Side = 'left' | 'right';
 
 export class Paddle {
   y = FIELD.height / 2;
+  prevY = FIELD.height / 2; // last fixed-step position, for render interpolation
+  prevX: number;
   vy = 0;
   x: number;
   readonly homeX: number;
@@ -22,6 +24,18 @@ export class Paddle {
       this.dir = -1;
     }
     this.x = this.homeX;
+    this.prevX = this.homeX;
+  }
+
+  /** Reset to the center serve position with a full boost meter. */
+  recenter(): void {
+    this.y = FIELD.height / 2;
+    this.prevY = this.y;
+    this.x = this.homeX;
+    this.prevX = this.homeX;
+    this.vy = 0;
+    this.dashTimer = 0;
+    this.boost = PADDLE.boostMax;
   }
 
   get isDashing(): boolean {
@@ -42,6 +56,8 @@ export class Paddle {
   }
 
   update(dt: number, input: InputState): void {
+    this.prevY = this.y;
+    this.prevX = this.x;
     const move = (input.down ? 1 : 0) - (input.up ? 1 : 0);
     this.vy = move * PADDLE.speed;
     const half = PADDLE.height / 2;

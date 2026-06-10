@@ -32,8 +32,11 @@ export const MATCH = {
   countdownSeconds: 3,
 } as const;
 
+// `error` is the ± vertical aiming error in px. The ball contact tolerance is
+// paddle_half + ball_radius = 58px, so `error` must exceed ~58 for a well-placed
+// shot to ever beat the AI. `boosts` gates whether the tier uses the dash power-hit.
 export const AI_DIFFICULTY = {
-  easy: { reaction: 0.22, error: 60 },
-  normal: { reaction: 0.12, error: 32 },
-  hard: { reaction: 0.05, error: 12 },
+  easy: { reaction: 0.28, error: 160, boosts: false },
+  normal: { reaction: 0.18, error: 110, boosts: true },
+  hard: { reaction: 0.1, error: 78, boosts: true },
 } as const;
