@@ -1,56 +1,54 @@
 # RLPong
 
-**Rocket League × Pong** — classic Pong wrapped in a Rocket League arena: neon pitch,
-blue-vs-orange teams, boost-dash power hits, a supersonic ball, goal explosions, and
-screen shake. "Just Pong" at the core, RL on the surface.
+Pong, if Pong had a boost meter and a grudge.
 
-Built with TypeScript + Vite + HTML5 Canvas. No game engine.
+<img src=".github/readme/rlpong.gif" alt="A rally on the neon pitch: blue and orange paddles trade hits, the ball goes supersonic and orange concedes in a burst of blue particles" width="800">
+
+<sub>Blue is a fifteen-line tracking bot I wrote to film this. Orange is the game's own Hard AI. Blue won the point.</sub>
+
+Two paddles, one ball, a Rocket League arena. Hit the boost and your paddle lunges forward for a power shot. Every hit adds speed, and past 720 px/s it goes supersonic: it turns cyan, glows twice as hard and makes a noise about it. Goals explode. The screen shakes. First to seven.
+
+TypeScript and a canvas. No game engine, no dependencies at runtime.
 
 ## Play
 
-```bash
+```sh
 npm install
 npm run dev
 ```
 
-Then open **http://localhost:5173**.
+Open http://localhost:5173 and pick a fight.
 
-## Controls
+|            | Move      | Boost                   |
+| ---------- | --------- | ----------------------- |
+| **Blue**   | `W` `S`   | `Space` or `Left Shift` |
+| **Orange** | `↑` `↓`   | `Right Shift`           |
 
-|                         | Move        | Boost                    |
-| ----------------------- | ----------- | ------------------------ |
-| **P1 (blue, left)**     | `W` / `S`   | `Space` or `Left Shift`  |
-| **P2 (orange, right)**  | `↑` / `↓`   | `Right Shift`            |
+`Enter` starts or rematches. `Esc` pauses. The game also pauses itself if you tab away mid-rally.
 
-`Esc` pause · `Enter` start / rematch. First to **7** goals wins.
+**vs AI** comes in three tempers. Easy reacts in 0.28 s and never boosts. Normal reacts in 0.18 s and boosts. Hard reacts in 0.1 s, boosts, and aims up to 78 px off, which leaves just enough room to beat it with a well-placed shot.
 
-## Modes
+**Local 2-player** puts both of you on one keyboard. Settle it properly.
 
-- **vs AI** — Easy / Normal / Hard (tunable reaction time and aim error).
-- **Local 2-player** — two players on one keyboard.
+## How it's built
 
-## Develop
-
-```bash
-npm test       # run the unit test suite (Vitest)
-npm run build  # typecheck + production build
-```
-
-## Architecture
-
-Pure game logic (`src/core`, `src/entities`, `src/systems/physics`) is engine-agnostic
-and unit-tested. A fixed-timestep loop drives deterministic updates; rendering, audio,
-input, and menus are thin glue over the canvas/DOM.
+The game logic doesn't know the canvas exists. Physics, the paddles, the AI and the match state are plain TypeScript, unit tested, and run on a fixed timestep so a rally plays out the same on any monitor. Rendering, sound and menus sit on top as thin glue.
 
 ```
 src/
-  config.ts        tunable constants
-  core/            math, input, fixed-timestep loop, Game state machine
-  entities/        Ball, Paddle (boost-dash), Ai
-  systems/         physics, particles, procedural WebAudio
-  render/          theme tokens, canvas renderer, HUD
-  ui/              DOM menu / pause / game-over overlay
-  main.ts          wiring
+  config.ts     every tunable number: speeds, boost, AI tempers
+  core/         maths, input, the fixed-timestep loop, the match state machine
+  entities/     Ball, Paddle (with the boost dash), Ai
+  systems/      physics, particles, sound synthesised with Web Audio
+  render/       theme, canvas renderer, HUD
+  ui/           menus and overlays
 ```
 
-Motion (screen shake, heavy particles) respects `prefers-reduced-motion`.
+Want a faster game? It's all in [`src/config.ts`](src/config.ts).
+
+```sh
+npm test         # Vitest
+npm run build    # typecheck and production build
+```
+
+When your system asks for reduced motion, the screen stops shaking, the ball loses its trail and particle bursts drop to a fifth.
